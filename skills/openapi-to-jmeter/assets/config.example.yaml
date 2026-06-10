@@ -1,0 +1,70 @@
+# openapi-to-jmeter config — optional. Pass with --config <file>.
+# Everything here is optional; CLI flags override these values, and these
+# values override the spec's own defaults. Keys you omit fall back to defaults.
+
+# ---------------------------------------------------------------------------
+# Target environment. base_url overrides the spec's server URL. Define multiple
+# named environments and pick one with --env <name> (defaults to "default").
+# ---------------------------------------------------------------------------
+environments:
+  default:
+    base_url: https://localhost:8443
+  staging:
+    base_url: https://orders.staging.example.com
+  prod:
+    base_url: https://orders.example.com
+
+# ---------------------------------------------------------------------------
+# Load profile. Same as the --threads/--ramp/--loops flags; put them here so a
+# run is reproducible from one file.
+# ---------------------------------------------------------------------------
+load:
+  threads: 1
+  ramp: 1
+  loops: 1
+
+# ---------------------------------------------------------------------------
+# Operation ordering. Either a strategy ("path" | "tag" | "crud") OR an explicit
+# ordered list of operationIds. The explicit list is the lightweight "scenario"
+# control: list the operations in the sequence you want them to run. Operations
+# in the spec but not listed here are appended afterward (set
+# include_unlisted: false to drop them instead).
+# ---------------------------------------------------------------------------
+order:
+  strategy: crud          # used only when 'sequence' is absent
+  # sequence:
+  #   - login
+  #   - createOrder
+  #   - addItem
+  #   - checkout
+  include_unlisted: true
+
+# ---------------------------------------------------------------------------
+# Auth hints. Usually auto-detected from the spec's securitySchemes, but you can
+# force the login operation and which response field holds the token, and which
+# header carries it on subsequent requests.
+# ---------------------------------------------------------------------------
+auth:
+  login_operation: login        # operationId that returns the token
+  token_field: accessToken      # response field to extract (JSON path leaf)
+  header: Authorization         # header to attach it to
+  scheme: Bearer                # prefix; result -> "Authorization: Bearer ${TOKEN}"
+
+# ---------------------------------------------------------------------------
+# Known values for inputs this service can't produce itself — the UNRESOLVED
+# rows from the manifest (cross-service ids, etc.) and any fixed test data.
+# These are pre-filled into the CSV template's first data row so the plan runs
+# out of the box. Keys are the JMeter variable names (the CSV column names).
+# ---------------------------------------------------------------------------
+values:
+  orderId: "11111111-1111-1111-1111-111111111111"
+  productId: "SKU-TEST-001"
+  email: tester@example.com
+  password: "changeit"
+
+# ---------------------------------------------------------------------------
+# Header overrides for the shared Header Manager (merged with the defaults
+# Content-Type/Accept and any detected auth header).
+# ---------------------------------------------------------------------------
+headers:
+  X-Tenant-Id: test-tenant
